@@ -1,11 +1,9 @@
-from pyspark.sql.types import *
-from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 import time
 import logging
 from init_spark import create_spark_object
 from validate import get_current_date
-from load import load_files, display_df, df_count
+from load import load_files, display_df, df_count, drop_duplicate_cols
 from mongo_connect import insert_document
 
 logging.config.fileConfig('properties/configuration/logging.config')
@@ -30,8 +28,21 @@ def main():
         df_count(df_tsv, 'df_tsv')
         df_count(df_txt, 'df_txt')
 
+        df_csv = df_csv.drop('Rowid')
+        df_tsv = df_tsv.drop('Rowid')
+
+        df_csv = df_csv.join(df_tsv, df_csv.Timestamp == df_tsv.Timestamp, 'inner')
+        df_clean1 = drop_duplicate_cols(df_csv, 'df_csv')
+        display_df(df_clean1, 'df_clean1')
+
+        df_txt = df_txt.join(df_clean1, df_txt.Tollplaza_id == df_tsv.Tollplaza_id, 'inner')
+        df_clean2 = drop_duplicate_cols(df_txt, 'df_txt')
+        display_df(df_clean2, 'df_clean2')
+
+        insert_document(df_clean2, 'df_clean2')
+
     except Exception as e:
-        logging.error('An error occured ===', str(e))
+        logging.error('An error occurred ===', str(e))
         sys.exit(1)
 
 

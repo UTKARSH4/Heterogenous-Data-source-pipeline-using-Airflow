@@ -3,7 +3,7 @@ import os
 from pyspark.sql.types import  *
 logging.config.fileConfig('properties/configuration/logging.config')
 
-loggers = logging.getLogger('load')
+loggers = logging.getLogger('ingest')
 
 schema_txt = StructType([StructField('Rowid', IntegerType(), True),
                          StructField('Timestamp', StringType(), True),
@@ -82,6 +82,29 @@ def df_count(df, df_name):
     except Exception as e:
         raise
     else:
-        loggers.warning('Number of records in the {} are {}'.format(df, df_c))
+        loggers.warning('Number of records in the {} are {}'.format(df_name, df_c))
 
     return df_c
+
+
+def drop_duplicate_cols(df, df_name):
+    try:
+        loggers.warning('dropping the duplicates columns in the {}'.format(df_name))
+        df = df.dropDuplicates()
+        c = {}
+        c = dict.fromkeys(df.columns,0)
+        for col in df.columns:
+            c[col] += 1
+
+        drop_dup=[]
+        for col in c.keys():
+            if c[col]>1:
+                drop_dup.append(col)
+                #df = df.drop(col)
+
+    except Exception as e:
+        raise
+    else:
+        loggers.warning('columns dropped in the {} are {}'.format(df_name, drop_dup))
+
+    return df

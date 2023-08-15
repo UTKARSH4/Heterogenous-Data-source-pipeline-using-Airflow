@@ -15,13 +15,18 @@ db = client['streamingdb']
 series_collection = db['streamingcoll']
 
 
-def insert_document(collection, data):
-        try:
-            loggers.warning('insert_document method started...')
-            id=  collection.insert_one(data).inserted_id
+def insert_document(df, df_name):
 
-        except Exception as e:
-            loggers.error('insert_document method failed ...', str(e))
-            raise
-        else:
-            loggers.warning('insertion done..')
+    try:
+        loggers.warning('insert_document method started...')
+        df.write.format("mongodb") \
+            .option("spark.mongodb.connection.uri", "mongodb://localhost:27017/")\
+            .option("spark.mongodb.database", "streamingdb")\
+            .option("spark.mongodb.collection", "streamingcoll")\
+            .mode("append").save()
+
+    except Exception as e:
+        loggers.error('insert_document method failed ...', str(e))
+        raise
+    else:
+        loggers.warning('inserted {}..'.format(df_name))

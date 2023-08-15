@@ -3,7 +3,7 @@ import logging.config
 
 logging.config.fileConfig('properties/configuration/logging.config')
 
-loggers = logging.getLogger('init_spark')
+loggers = logging.getLogger('Create_spark')
 
 
 def create_spark_object():
