@@ -5,7 +5,8 @@ from init_spark import create_spark_object
 from validate import get_current_date
 from load import load_files, display_df, df_count, drop_duplicate_cols
 from mongo_connect import insert_document
-
+from web_scraping import scraped_df
+from pdf_extraction import pdf
 logging.config.fileConfig('properties/configuration/logging.config')
 
 
@@ -40,7 +41,8 @@ def main():
         display_df(df_clean2, 'df_clean2')
 
         insert_document(df_clean2, 'df_clean2')
-
+        insert_document(scraped_df(),'scraped_df')
+        #insert_document(extracted_df,'df_extract')
     except Exception as e:
         logging.error('An error occurred ===', str(e))
         sys.exit(1)
