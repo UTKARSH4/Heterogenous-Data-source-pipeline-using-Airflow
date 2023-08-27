@@ -1,9 +1,10 @@
 import PyPDF2
 import os
 import pandas as pd
-import re
-def search_pdf_for_word(pdf_path, start, end):
-    matching_paragraphs = []
+
+keywords = ['Deaths','Southwest Border Sectors']
+def extract_pdf_data(pdf_path, keywords=keywords):
+    start,end = keywords
 
     with open(pdf_path, 'rb') as file:
         pdf_reader = PyPDF2.PdfReader(file)
@@ -16,37 +17,53 @@ def search_pdf_for_word(pdf_path, start, end):
             page = pdf_reader.pages[page_num]
             text = page.extract_text()
             text = text.replace(',', '')      # Remove "\n" characters from the text
-
+            text = text.replace('**** N/A ****', 'N/A')
             paragraphs = text.split('\n')
             #x=paragraphs.find(end)
             pg.extend(paragraphs)
-            for v in pg:
-                if start in v:
-                    first=pg.index(v)+1
-                    break;
-                else:
-                    first=0
-            for v in pg:
-                if end in v:
-                    last=pg.index(v)
-                    break;
-                else:
-                    last=len(pg)
 
-            pg=pg[first:last]
-            del pg[3]
-            del pg[12]
-            for v in pg:
+        for v in pg:
+            if start in v:
+                first=pg.index(v)+1
+                break;
+            else:
+                first=0
+        for v in pg:
+            if end in v:
+                last=pg.index(v)
+                break;
+            else:
+                last=len(pg)
 
-                dflist.append(v.strip().split(" "))
-            df=pd.DataFrame(dflist)
+        pg=pg[first:last]
+        for v in pg:
 
+            v=v.lstrip()
+            v=v.split(" ")
+            if len(v)>10:
+                diff = len(v)-9
+                firstcol = ' '.join(v[0:diff])
+                #print(' '.join(v[0:diff]))
+                nlist=v[diff:]
+                nlist.insert(0,firstcol)
+                dflist.append(nlist)
+            else :
+                firstcol = v[0]
+                nlist = v[1:]
+                nlist.insert(0, firstcol)
+                dflist.append(nlist)
+        df=pd.DataFrame(dflist)
+        df.columns = ['SECTOR',
+                        'Agent Staffing',
+                        'Apprehensions',
+                        'Other Than Mexican Apprehensions',
+                        'Marijuana (pounds)',
+                        'Cocaine (pounds)',
+                        'Accepted Prosecutions',
+                        'Assaults',
+                        'Rescues',
+                        'Deaths']
 
     return df
 
 
-
-pdf_path = "C:/Users/utkarsh.verma/Downloads/usbp_stats_fy2017_sector_profile.pdf"
-keywords = ['Key Items:']
-
-print(search_pdf_for_word(pdf_path,'Deaths' , 'Southwest Border Sectors'))

@@ -6,7 +6,7 @@ from validate import get_current_date
 from load import load_files, display_df, df_count, drop_duplicate_cols
 from mongo_connect import insert_document
 from web_scraping import scraped_df
-from pdf_extraction import pdf
+from pdf_extraction import extract_pdf_data
 logging.config.fileConfig('properties/configuration/logging.config')
 
 
@@ -24,6 +24,7 @@ def main():
         df_csv = load_files(spark, file_dir='/home/utkarsh/Downloads/archive/vehicle-data.csv')
         df_tsv = load_files(spark, file_dir='/home/utkarsh/Downloads/archive/tollplaza-data.tsv')
         df_txt = load_files(spark, file_dir='/home/utkarsh/Downloads/archive/payment-data.txt')
+        pdf_path = "C:/Users/utkarsh.verma/Downloads/usbp_stats_fy2017_sector_profile.pdf"
         logging.info('validating the dataframes... ')
         df_count(df_csv, 'df_csv')
         df_count(df_tsv, 'df_tsv')
@@ -42,7 +43,7 @@ def main():
 
         insert_document(df_clean2, 'df_clean2')
         insert_document(scraped_df(),'scraped_df')
-        #insert_document(extracted_df,'df_extract')
+        insert_document(extract_pdf_data(pdf_path),'df_extract')
     except Exception as e:
         logging.error('An error occurred ===', str(e))
         sys.exit(1)
